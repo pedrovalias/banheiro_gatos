@@ -1,3 +1,5 @@
+#include <Arduino.h>
+
 #include <NewPing.h>
 
 #define ECHO_PIN_1      5    // Arduino pin tied to echo pin on the ultrasonic sensor.
@@ -19,6 +21,12 @@ int distancia = 0;
 int delayLoop = 3;
 int execucoesPrograma = 0;
 const int limite_distancia = 35;
+
+void inicializaPinagem();
+boolean verifica_banheiro();
+void verificaStatusSistema();
+void apagaLEDS();
+void piscaLEDS();
 
 NewPing sonar(TRIGGER_PIN_1, ECHO_PIN_1, MAX_DISTANCE); // NewPing setup
 
