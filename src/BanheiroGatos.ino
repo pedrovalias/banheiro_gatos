@@ -21,9 +21,10 @@ int distancia = 0;
 int delayLoop = 3;
 int execucoesPrograma = 0;
 const int limite_distancia = 35;
+boolean gato_usou_banheiro = false;
 
 void inicializaPinagem();
-boolean verifica_banheiro();
+void verifica_banheiro();
 void verificaStatusSistema();
 void apagaLEDS();
 void piscaLEDS();
@@ -47,20 +48,23 @@ void loop() {
   Serial.print(sonar.ping_cm());  // Envia o ping, obtem a distancia em cm e exibe terminal (0 = fora do alcance)
   Serial.println("cm");
 
-  boolean gato_usou_banheiro = verifica_banheiro();
+  verifica_banheiro();
 
   Serial.print("Gato usou o banheiro: "); Serial.println(gato_usou_banheiro);
 
-  distancia = sonar.ping_cm();
+  distancia = validarDistancia();
   
-  if(distancia > limite_distancia && gato_usou_banheiro){  
+  if((distancia > limite_distancia || distancia == 0) && gato_usou_banheiro == true){ 
+    Serial.print("Limpeza em andamento!");
     digitalWrite(LED_VERMELHO, LOW);
     digitalWrite(LED_AZUL, HIGH);
+  
     digitalWrite(PINO_VALVULA_1, LOW);
     Serial.println("Valvula Ligada");
     delay(8000);
     digitalWrite(PINO_VALVULA_1, HIGH);
-    digitalWrite(LED_AZUL, LOW);      
+    digitalWrite(LED_AZUL, LOW);
+    gato_usou_banheiro = false;
   }
 
   execucoesPrograma ++;
@@ -87,35 +91,78 @@ void inicializaPinagem(){
   digitalWrite(LED_AZUL, LOW);
 }
 
-boolean verifica_banheiro(){
-  
-  distancia = sonar.ping_cm();
-  
+void verifica_banheiro(){
+   
+  distancia = validarDistancia();
+  boolean gatoUsandoBanheiro = false ;
+
   if(distancia <= limite_distancia && distancia != 0){
-    digitalWrite(LED_VERDE, LOW);
-    digitalWrite(LED_VERMELHO, HIGH);
-    Serial.println("O Gato está no banheiro");
-    delay(15000);                                 
-    return true;  
+    gatoUsandoBanheiro = true;
+    gato_usou_banheiro = true;
+
+    while(gatoUsandoBanheiro) {
+
+      Serial.println("O Gato está no banheiro");
+      
+      digitalWrite(LED_VERDE, LOW);
+      digitalWrite(LED_VERMELHO, HIGH);
+
+      distancia = validarDistancia();
+
+      if(distancia > limite_distancia || distancia == 0) {
+        Serial.println("Banheiro liberado");
+        delay(5000);
+        gatoUsandoBanheiro = false;
+        digitalWrite(LED_VERMELHO, LOW);
+      }
+    }
   }
-  return false;
+}
+
+int validarDistancia(){
+
+  int d1 = 0;
+  int d2 = 0;
+  int d3 = 0;
+  int media = 0;
+
+  d1 = sonar.ping_cm();
+  delay(500);
+  d2 = sonar.ping_cm();
+  delay(500);
+  d3 = sonar.ping_cm();
+
+  Serial.print("D1: " + String(d1));
+  Serial.print("    | D2: " + String(d2));
+  Serial.println("    | D3: " + String(d3));
+
+  media = (d1 +d2 + d3) / 3;
+
+  Serial.println("Distancia média: " + String(media));
+  Serial.println("-------------------------------------------------");
+
+  return media;
 }
 
 void verificaStatusSistema(){
 
-  int d = 0;
+  int distancia_validada = validarDistancia();
+
+  Serial.println("######### Verificando Status do Sistema #########");
+
   boolean controle = true;
 
   // Enquanto a leitura do sensor trouxer valor zero os LEDs piscam sequenciamente
   while(controle){
 
-    d = sonar.ping_cm();
+    int distancia_validada = validarDistancia();
 
-    if(d > 0){
+    if(distancia_validada > 0){
       controle = false;
-    }
-    apagaLEDS();
-    piscaLEDS();
+    } else {
+      piscaLEDS();
+      apagaLEDS();
+    } 
   }
 }
 
@@ -129,7 +176,7 @@ void apagaLEDS(){
 void piscaLEDS(){
     digitalWrite(LED_VERDE, HIGH);
     delay(700);
-    digitalWrite(LED_AZUL, HIGH);
-    delay(700);
+    // digitalWrite(LED_AZUL, HIGH);
+    // delay(700);
     digitalWrite(LED_VERMELHO, HIGH);
 }
