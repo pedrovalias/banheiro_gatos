@@ -19,9 +19,10 @@
 
 int distancia = 0;
 int delayLoop = 3;
-int execucoesPrograma = 0;
-const int limite_distancia = 35;
+// int execucoesLimpeza = 0;
+const int limite_distancia = 32;
 boolean gato_usou_banheiro = false;
+int tempoEsperaSegundos = 120;        
 
 void inicializaPinagem();
 void verifica_banheiro();
@@ -58,17 +59,16 @@ void loop() {
     Serial.print("Limpeza em andamento!");
     digitalWrite(LED_VERMELHO, LOW);
     digitalWrite(LED_AZUL, HIGH);
-  
     digitalWrite(PINO_VALVULA_1, LOW);
     Serial.println("Valvula Ligada");
     delay(8000);
     digitalWrite(PINO_VALVULA_1, HIGH);
     digitalWrite(LED_AZUL, LOW);
     gato_usou_banheiro = false;
+    // execucoesLimpeza ++;
   }
 
-  execucoesPrograma ++;
-  Serial.print("Execuções Programa: "); Serial.println(execucoesPrograma);
+  // Serial.print("Execuções Programa: "); Serial.println(execucoesLimpeza);
   
   // Loop executa a cada x segundos (estipulado no setup)
   delay(delayLoop * 1000);
@@ -111,7 +111,12 @@ void verifica_banheiro(){
 
       if(distancia > limite_distancia || distancia == 0) {
         Serial.println("Banheiro liberado");
-        delay(5000);
+        Serial.print("Tempo de espera antes de ligar a valvula: ");
+        for(int i = 0 ; i < tempoEsperaSegundos; i++){
+          delay(1000);
+          Serial.print(i);
+        }
+        // delay(5000);
         gatoUsandoBanheiro = false;
         digitalWrite(LED_VERMELHO, LOW);
       }
@@ -124,6 +129,8 @@ int validarDistancia(){
   int d1 = 0;
   int d2 = 0;
   int d3 = 0;
+  int d4 = 0;
+  int d5 = 0;
   int media = 0;
 
   d1 = sonar.ping_cm();
@@ -131,12 +138,18 @@ int validarDistancia(){
   d2 = sonar.ping_cm();
   delay(500);
   d3 = sonar.ping_cm();
+  delay(500);
+  d4 = sonar.ping_cm();
+  delay(500);
+  d5 = sonar.ping_cm();
 
   Serial.print("D1: " + String(d1));
-  Serial.print("    | D2: " + String(d2));
-  Serial.println("    | D3: " + String(d3));
+  Serial.print("  | D2: " + String(d2));
+  Serial.print("  | D3: " + String(d3));
+  Serial.print("  | D4: " + String(d4));
+  Serial.println("  | D5: " + String(d5));
 
-  media = (d1 +d2 + d3) / 3;
+  media = (d1 +d2 + d3 + d4 + d5) / 5;
 
   Serial.println("Distancia média: " + String(media));
   Serial.println("-------------------------------------------------");
