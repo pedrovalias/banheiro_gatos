@@ -2,53 +2,23 @@
 
 #include <NewPing.h>
 
-
-/*
-#include <NewPing.h>
-
-#define SONAR_NUM 3      // Number of sensors.
-#define MAX_DISTANCE 200 // Maximum distance (in cm) to ping.
-
-NewPing sonar[SONAR_NUM] = {   // Sensor object array.
-  NewPing(4, 5, MAX_DISTANCE), // Each sensor's trigger pin, echo pin, and max distance to ping. 
-  NewPing(6, 7, MAX_DISTANCE), 
-  NewPing(8, 9, MAX_DISTANCE)
-};
-
-void setup() {
-  Serial.begin(115200); // Open serial monitor at 115200 baud to see ping results.
-}
-
-void loop() { 
-  for (uint8_t i = 0; i < SONAR_NUM; i++) { // Loop through each sensor and display results.
-    delay(50); // Wait 50ms between pings (about 20 pings/sec). 29ms should be the shortest delay between pings.
-    Serial.print(i);
-    Serial.print("=");
-    Serial.print(sonar[i].ping_cm());
-    Serial.print("cm ");
-  }
-  Serial.println();
-}
-*/
-
-
 // #define ECHO_PIN_1      5    // Arduino pin tied to echo pin on the ultrasonic sensor.
 // #define TRIGGER_PIN_1   6    // Arduino pin tied to trigger pin on the ultrasonic sensor.
 
-//#define ECHO_PIN_2    7    // Arduino pin tied to echo pin on the ultrasonic sensor.
-//#define TRIGGER_PIN_2 8    // Arduino pin tied to trigger pin on the ultrasonic sensor.
+//#define ECHO_PIN_2    7       // Arduino pin tied to echo pin on the ultrasonic sensor.
+//#define TRIGGER_PIN_2 8       // Arduino pin tied to trigger pin on the ultrasonic sensor.
 
-#define MAX_DISTANCE    55   // Distância máxima que queremos o ping(em centimetros). O máximo possível é 400-500cm.
+#define MAX_DISTANCE    55      // Distância máxima que queremos o ping(em centimetros). O máximo possível é 400-500cm.
 
-#define SONAR_NUM 2    // Number of sensors.
+#define SONAR_NUM 2             // Número de sensores
 
-NewPing sonar[SONAR_NUM] = {   // Sensor object array.
-  NewPing(6, 5, MAX_DISTANCE), // Each sensor's trigger pin, echo pin, and max distance to ping. 
+NewPing sonar[SONAR_NUM] = {    // Sensor object array.
+  NewPing(6, 5, MAX_DISTANCE),  // Cada sensor possui um trigger pin, um echo pin e a maxima distancia para o ping  
   NewPing(8, 7, MAX_DISTANCE)
 };
 
-#define PINO_VALVULA_1  9    // Válvula Solenoide 1
-#define PINO_VALVULA_2  10   // Válvula Solenoide 2
+#define PINO_VALVULA_1  9       // Válvula Solenoide 1
+#define PINO_VALVULA_2  10      // Válvula Solenoide 2
 
 #define LED_VERDE    2 
 #define LED_AZUL     3
@@ -56,10 +26,11 @@ NewPing sonar[SONAR_NUM] = {   // Sensor object array.
 
 int distancia = 0;
 int delayLoop = 3;
-// int execucoesLimpeza = 0;
 const int limite_distancia = 32;
 boolean gato_usou_banheiro = false;
-int tempoEsperaSegundos = 120;        
+int tempoEsperaSegundos = 3;    // Tempo determinado para espera é de 120 segundos   
+
+// int execucoesLimpeza = 0;
 
 void inicializaPinagem();
 void verifica_banheiro(int numSensor);
@@ -67,8 +38,6 @@ void verificaStatusSistema();
 void executaLimpeza(int banheiro);
 void apagaLEDS();
 void piscaLEDS();
-
-// NewPing sonar(TRIGGER_PIN_1, ECHO_PIN_1, MAX_DISTANCE); // NewPing setup
 
 void setup() {
 
@@ -83,13 +52,9 @@ void loop() {
 
   digitalWrite(LED_VERDE, HIGH);
   
-  // Serial.print("Ping: ");
-  // Serial.print(sonar.ping_cm());  // Envia o ping, obtem a distancia em cm e exibe terminal (0 = fora do alcance)
-  // Serial.println("cm");
-
   // Envia o ping, obtem a distancia em cm e exibe terminal (0 = fora do alcance)
-  for (uint8_t i = 0; i < SONAR_NUM; i++) { // Loop through each sensor and display results.
-    delay(50); // Wait 50ms between pings (about 20 pings/sec). 29ms should be the shortest delay between pings.
+  for (uint8_t i = 0; i < SONAR_NUM; i++) { // Loop por cada sensor e exibição do valor lido
+    delay(50);                              // Aguarda 50ms entre pings (aprox 20 pings/segundo). 29ms deve ser o menor delay entre pings.
     Serial.print(i);
     Serial.print("=");
     Serial.print(sonar[i].ping_cm());
@@ -98,18 +63,8 @@ void loop() {
   Serial.println();
 
   verifica_banheiro(0);
+  verifica_banheiro(1);
 
-  Serial.print("Gato usou o banheiro: "); Serial.println(gato_usou_banheiro);
-
-  // distancia = validarDistancia();
-
-  // executaLimpeza(0);
-  // executaLimpeza(1);
-
-
-  // Serial.print("Execuções Programa: "); Serial.println(execucoesLimpeza);
-  
-  // Loop executa a cada x segundos (estipulado no setup)
   delay(delayLoop * 1000);
 }
 
@@ -163,73 +118,35 @@ void verifica_banheiro(int numSensor){
     }
   }
 
+  Serial.print("Gato usou o banheiro "); 
+  Serial.print(numSensor);
+  Serial.print(" : ");
+  Serial.println(gato_usou_banheiro);
+
   executaLimpeza(numSensor);
 }
 
 int validarDistancia(int dv){
-
-  // int d1 = 0;
-  // int d2 = 0;
-  // int d3 = 0;
-  // int d4 = 0;
-  // int d5 = 0;
+  
   int d[5];
   int media = 0;
 
+  Serial.println("Validando distancia do sensor " + String(dv));
   for(uint8_t i = 0; i < 5; i++){
     d[i] = sonar[dv].ping_cm();
     delay(500);
-    Serial.print("Valor Vetor:");
-    Serial.println(d[i]);
+    Serial.println("leitura " + String(i) + " : " + String(d[i]));
+//    Serial.print(i);
+//    Serial.print(" : ");
+//    Serial.println(d[i]);
   }
 
   media = (d[0] + d[1] + d[2] + d[3] + d[4]) /5;
 
-  // for (uint8_t i = 0; i < SONAR_NUM; i++) {
-  //   if(SONAR_NUM == 0){
-  //     for(int j = 0; j < 5; j++){
-  //       d[j] = sonar[i].ping_cm();
-  //       delay(500);
-  //       Serial.print("Valor Vetor:");
-  //       Serial.println(d[j]);
-  //     }
-  //     media1 = (d[0] + d[1] + d[2] + d[3] + d[4]) /5;
-  //   }
-
-  //   for(int j = 0; j < 5; j++){
-  //       d[j] = sonar[i].ping_cm();
-  //       delay(500);
-  //       Serial.print("Valor Vetor:");
-  //       Serial.println(d[j]);
-  //     }
-  //     media2 = (d[0] + d[1] + d[2] + d[3] + d[4]) /5;
-  // }
-
-
-  // d1 = sonar.ping_cm();
-  // delay(500);
-  // d2 = sonar.ping_cm();
-  // delay(500);
-  // d3 = sonar.ping_cm();
-  // delay(500);
-  // d4 = sonar.ping_cm();
-  // delay(500);
-  // d5 = sonar.ping_cm();
-
-  // Serial.print("D1: " + String(d1));
-  // Serial.print("  | D2: " + String(d2));
-  // Serial.print("  | D3: " + String(d3));
-  // Serial.print("  | D4: " + String(d4));
-  // Serial.println("  | D5: " + String(d5));
-
-  // media = (d1 +d2 + d3 + d4 + d5) / 5;
-
-
-  Serial.println("Distancia média: " + String(media));
+  Serial.println("Distancia média obtida: " + String(media));
   Serial.println("-------------------------------------------------");
 
   return media;
-
 }
 
 void executaLimpeza(int banheiro){
@@ -241,7 +158,7 @@ void executaLimpeza(int banheiro){
     digitalWrite(LED_VERMELHO, LOW);
     digitalWrite(LED_AZUL, HIGH);
     banheiro == 0 ? digitalWrite(PINO_VALVULA_1, LOW) : digitalWrite(PINO_VALVULA_2, LOW);
-    Serial.println("Valvula Ligada");
+    Serial.print("Valvula "); Serial.print(banheiro); Serial.println(" Ligada");
     delay(8000);
     banheiro == 0 ? digitalWrite(PINO_VALVULA_1, HIGH) : digitalWrite(PINO_VALVULA_2, HIGH);
     digitalWrite(LED_AZUL, LOW);
